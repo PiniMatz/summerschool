@@ -1,0 +1,779 @@
+﻿<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>לוח שיעורים אינטראקטיבי - יולי 2026</title>
+    <meta name="description" content="לוח שעות אינטראקטיבי לבית הספר של החופש הגדול. מצאו את המערכת האישית שלכם לפי שם תלמיד או קבוצה.">
+    
+    <!-- Google Fonts: Rubik for premium Hebrew typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1f497d;
+            --primary-light: #2c3e50;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border-color: #d5d8dc;
+            --text-dark: #2c3e50;
+            --text-muted: #566573;
+            --highlight-bg: #e8f8f5;
+            --highlight-border: #117a65;
+            --highlight-text: #117a65;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: #f4f6f9;
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Styling */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        /* Search & Control Panel */
+        .controls {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 30px;
+            outline: none;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(31, 73, 125, 0.15);
+        }
+
+        /* Autocomplete Dropdown */
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 5px;
+            display: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .autocomplete-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+            text-align: right;
+        }
+
+        .autocomplete-item:hover {
+            background: #f2f4f4;
+            color: var(--primary);
+        }
+
+        /* Filters and Quick Select */
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #f2f4f4;
+        }
+
+        .btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-print {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .btn-print:hover {
+            background: #219653;
+        }
+
+        /* View Toggle Settings */
+        .view-settings {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* Info Display Bar */
+        .info-bar {
+            background: #ebf5fb;
+            border-right: 4px solid #3498db;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+            display: none;
+        }
+
+        /* Calendar Grid */
+        .calendar-wrapper {
+            overflow-x: auto;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            gap: 10px;
+            min-width: 1000px;
+        }
+
+        /* Calendar Header */
+        .grid-header {
+            background: var(--primary-light);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            border-radius: 8px;
+            font-size: 1.05rem;
+        }
+
+        /* Day Cells */
+        .day-cell {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+        }
+
+        .day-cell:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .day-cell.empty {
+            background: #f9ebea;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px);
+            border-color: #ebedef;
+            opacity: 0.5;
+        }
+
+        .day-num {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            align-self: flex-start;
+            margin-bottom: 4px;
+        }
+
+        /* Week Label Cell */
+        .week-label {
+            background: #f2f4f4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            color: var(--primary);
+            line-height: 1.4;
+        }
+
+        /* Session Lines */
+        .session-item {
+            font-size: 0.88rem;
+            padding: 6px 8px;
+            border-radius: 6px;
+            background: #f8f9f9;
+            border-right: 3px solid #bdc3c7;
+            transition: all 0.2s ease;
+            line-height: 1.3;
+        }
+
+        /* Highlights for matching classes */
+        .session-item.highlighted {
+            background: var(--highlight-bg);
+            border-right-color: var(--highlight-border);
+            font-weight: 500;
+            color: #117a65;
+            box-shadow: 0 2px 6px rgba(17,122,101,0.08);
+            font-size: 0.92rem;
+        }
+
+        .session-item.faded {
+            opacity: 0.45;
+        }
+
+        .session-item .time {
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .session-item .details {
+            display: block;
+        }
+
+        .session-item .student-badge {
+            display: inline-block;
+            background: var(--highlight-border);
+            color: white;
+            font-size: 0.72rem;
+            padding: 1px 6px;
+            border-radius: 10px;
+            margin-top: 3px;
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding-bottom: 20px;
+        }
+
+        /* Responsive Mobile Settings */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-buttons {
+                justify-content: center;
+            }
+        }
+
+        /* Print Media styling for A4 Landscape */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .controls, footer, .autocomplete-list {
+                display: none !important;
+            }
+            header {
+                margin-bottom: 15px;
+            }
+            header h1 {
+                font-size: 1.6rem;
+            }
+            .calendar-grid {
+                grid-template-columns: 70px repeat(5, 1fr) !important;
+                gap: 5px !important;
+                min-width: 100% !important;
+            }
+            .day-cell {
+                min-height: 100px !important;
+                padding: 6px !important;
+                font-size: 0.75rem !important;
+            }
+            .session-item {
+                padding: 3px 5px !important;
+                font-size: 0.72rem !important;
+            }
+            .session-item.faded {
+                opacity: 0.15 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>בית הספר של החופש הגדול - יולי 2026</h1>
+        <p>מערכת שעות אינטראקטיבית לכיתות ד', ה' ו-ו'</p>
+    </header>
+
+    <div class="controls">
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="הקלידו שם תלמיד/ה או קבוצה..." autocomplete="off">
+            <div id="autocompleteList" class="autocomplete-list"></div>
+        </div>
+
+        <div class="filter-buttons">
+            <button class="btn active" id="btnAllGrades">כל השכבות</button>
+            <button class="btn" id="btnD">כיתות ד'</button>
+            <button class="btn" id="btnH">כיתות ה'</button>
+            <button class="btn" id="btnV">כיתות ו'</button>
+            <button class="btn btn-print" onclick="window.print()">הדפסה ל-A4 🖨️</button>
+        </div>
+
+        <div class="view-settings">
+            <label class="switch-container">
+                <input type="checkbox" id="toggleShowOnlyMy" style="width: 18px; height: 18px; cursor: pointer;">
+                <span>הצג שיעורים שלי בלבד</span>
+            </label>
+        </div>
+    </div>
+
+    <div id="infoBar" class="info-bar"></div>
+
+    <div class="calendar-wrapper">
+        <div class="calendar-grid" id="calendarGrid">
+            <!-- Headers will be rendered here -->
+        </div>
+    </div>
+
+    <footer>
+        <p>נוצר באהבה עבור תלמידי בית הספר של החופש הגדול • יולי 2026</p>
+    </footer>
+</div>
+
+<script>
+    // Embedded Databases
+    const SESSIONS = [{"week": 1, "day_header": "יום רביעי 1.7", "day_name": "יום רביעי", "date": "1.7", "file": "_תכנון שבועי 1 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "11.30-13.00", "subject": "העשרה באומנות עם מירב צ.", "row": "ד"}, {"group": "ד (קב' 3)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 3)", "time": "10.00-11.30", "subject": "העשרה באומנות עם מירב צ.", "row": "ד"}, {"group": "ה+ו", "time": "8.00-9.00", "subject": "העשרה באומנות עם מירב צ.", "row": "ה+ו"}, {"group": "ה (ה' 9)", "time": "9.00-11.00", "subject": "שפה עם שרון", "row": "ה+ו"}, {"group": "ו", "time": "9.00-11.00", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 1, "day_header": "יום חמישי 2.7", "day_name": "יום חמישי", "date": "2.7", "file": "_תכנון שבועי 1 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "מתמטיקה עם מירב א.", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-12.00", "subject": "מתמטיקה עם מירב א.", "row": "ד"}, {"group": "ד (קב' 3)", "time": "11.30-13.00", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ה (ה' 8)", "time": "8.00-9.30", "subject": "שפה עם רינת", "row": "ה+ו"}, {"group": "ו", "time": "9.30-11.00", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 2, "day_header": "יום ראשון 5.7", "day_name": "יום ראשון", "date": "5.7", "file": "_תכנון שבועי 2 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 3)", "time": "10.00-12.00", "subject": "מתמטיקה עם מירב א.", "row": "ד"}, {"group": "ה (ה' 8)", "time": "8.00-9.30", "subject": "מתמטיקה עם מירב א.", "row": "ה+ו"}, {"group": "ה (ה' 8)", "time": "10.00-11.30", "subject": "שפה עם רינת", "row": "ה+ו"}, {"group": "ו", "time": "10.00-11.30", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 2, "day_header": "יום שני 6.7", "day_name": "יום שני", "date": "6.7", "file": "_תכנון שבועי 2 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "מתמטיקה עם מירב א.", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם שרון", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם שרון", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "מתמטיקה עם מירב א.", "row": "ד"}, {"group": "ו", "time": "8.00-9.30", "subject": "שפה עם רינת", "row": "ה+ו"}, {"group": "ה", "time": "10.00-11.30", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 2, "day_header": "יום שלישי 7.7", "day_name": "יום שלישי", "date": "7.7", "file": "_תכנון שבועי 2 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 3)", "time": "12.00-13.00", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ה", "time": "8.00-9.30", "subject": "מתמטיקה עם מירב א.", "row": "ה+ו"}, {"group": "ה", "time": "10.00-11.30", "subject": "שפה עם שרון", "row": "ה+ו"}, {"group": "ו", "time": "8.00-9.30", "subject": "שפה עם שרון", "row": "ה+ו"}, {"group": "ו", "time": "10.00-11.30", "subject": "מתמטיקה עם מירב א.", "row": "ה+ו"}]}, {"week": 2, "day_header": "יום רביעי 8.7", "day_name": "יום רביעי", "date": "8.7", "file": "_תכנון שבועי 2 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 3)", "time": "8.00-9.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 2)", "time": "12.00-13.00", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ה", "time": "8.00-9.30", "subject": "שפה עם שרון", "row": "ה+ו"}, {"group": "ו", "time": "10.00-11.30", "subject": "שפה עם שרון", "row": "ה+ו"}]}, {"week": 2, "day_header": "יום חמישי 9.7", "day_name": "יום חמישי", "date": "9.7", "file": "_תכנון שבועי 2 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "מתמטיקה עם מירב א.", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-12.00", "subject": "מתמטיקה עם מירב א.", "row": "ד"}]}, {"week": 3, "day_header": "יום ראשון 12.7", "day_name": "יום ראשון", "date": "12.7", "file": "_תכנון שבועי 3 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 3)", "time": "10.00-11.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 1)", "time": "12.00-13.00", "subject": "שפה עם מיכל ש.", "row": "ד"}]}, {"week": 3, "day_header": "יום שני 13.7", "day_name": "יום שני", "date": "13.7", "file": "_תכנון שבועי 3 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "12.00-13.00", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ו", "time": "8.00-9.30", "subject": "שפה עם שרון", "row": "ה+ו"}, {"group": "ה", "time": "8.00-9.30", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 3, "day_header": "יום שלישי 14.7", "day_name": "יום שלישי", "date": "14.7", "file": "_תכנון שבועי 3 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 1)", "time": "12.00-13.00", "subject": "העשרה באומנות עם מירב", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "העשרה באומנות עם מירב", "row": "ד"}, {"group": "ד (קב' 3)", "time": "8.00-9.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ה+ו", "time": "8.00-9.30", "subject": "העשרה באומנות עם מירב צ.", "row": "ה+ו"}, {"group": "ה", "time": "9.30-11.00", "subject": "שפה עם רינת", "row": "ה+ו"}, {"group": "ו", "time": "11.00-12.00", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 3, "day_header": "יום רביעי 15.7", "day_name": "יום רביעי", "date": "15.7", "file": "_תכנון שבועי 3 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "העשרה באומנות עם מירב", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "12.00-13.00", "subject": "העשרה באומנות עם מירב", "row": "ד"}, {"group": "ד (קב' 3)", "time": "8.00-9.30", "subject": "העשרה באומנות עם מירב", "row": "ד"}, {"group": "ה", "time": "10.00-11.30", "subject": "שפה עם רינת", "row": "ה+ו"}, {"group": "ו", "time": "8.00-9.30", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 3, "day_header": "יום חמישי 16.7", "day_name": "יום חמישי", "date": "16.7", "file": "_תכנון שבועי 3 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "12.00-13.00", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 3)", "time": "12.00-13.00", "subject": "שפה עם שחר", "row": "ד"}]}, {"week": 4, "day_header": "יום ראשון 19.7", "day_name": "יום ראשון", "date": "19.7", "file": "_תכנון שבועי 4 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 3)", "time": "8.00-9.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ה", "time": "8.00-9.30", "subject": "שפה עם רינת", "row": "ה+ו"}, {"group": "ו", "time": "10.00-11.30", "subject": "שפה עם רינת", "row": "ה+ו"}, {"group": "ו", "time": "12.00-13.00", "subject": "אנגלית עם מיכל", "row": "ה+ו"}]}, {"week": 4, "day_header": "יום שני 20.7", "day_name": "יום שני", "date": "20.7", "file": "_תכנון שבועי 4 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 1)", "time": "12.00-13.00", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.00", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 3)", "time": "11.00-12.00", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ה (ה' 1)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ה+ו"}, {"group": "ה", "time": "10.00-11.30", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 4, "day_header": "יום שלישי 21.7", "day_name": "יום שלישי", "date": "21.7", "file": "_תכנון שבועי 4 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 3)", "time": "12.00-13.00", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ה (ה' 1)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ה+ו"}, {"group": "ה", "time": "10.00-11.30", "subject": "שפה עם רינת", "row": "ה+ו"}]}, {"week": 4, "day_header": "יום רביעי 22.7", "day_name": "יום רביעי", "date": "22.7", "file": "_תכנון שבועי 4 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 2)", "time": "12.00-13.00", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 3)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 3)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}]}, {"week": 4, "day_header": "יום חמישי 23.7", "day_name": "יום חמישי", "date": "23.7", "file": "_תכנון שבועי 4 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}]}, {"week": 5, "day_header": "יום ראשון 26.7", "day_name": "יום ראשון", "date": "26.7", "file": "_ תכנון שבועי 5 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 3)", "time": "12.00-13.00", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ה (ה'1)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ה+ו"}, {"group": "ה (ה'2)", "time": "10.00-11.30", "subject": "אנגלית עם מיכל", "row": "ה+ו"}, {"group": "ו", "time": "12.00-13.00", "subject": "אנגלית עם מיכל", "row": "ה+ו"}]}, {"week": 5, "day_header": "יום שני 27.7", "day_name": "יום שני", "date": "27.7", "file": "_ תכנון שבועי 5 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 3)", "time": "12.00-13.00", "subject": "אנגלית עם מיכל", "row": "ד"}]}, {"week": 5, "day_header": "יום שלישי 28.7", "day_name": "יום שלישי", "date": "28.7", "file": "_ תכנון שבועי 5 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 1)", "time": "10.00-11.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "אנגלית עם מיכל", "row": "ד"}]}, {"week": 5, "day_header": "יום רביעי 29.7", "day_name": "יום רביעי", "date": "29.7", "file": "_ תכנון שבועי 5 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "8.00-9.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 2)", "time": "12.00-13.00", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 3)", "time": "10.00-11.30", "subject": "שפה עם מיכל ש.", "row": "ד"}, {"group": "ד (קב' 3)", "time": "12.00-13.00", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ה (ה'1)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ה+ו"}, {"group": "ה (ה'2)", "time": "10.00-11.30", "subject": "אנגלית עם מיכל", "row": "ה+ו"}]}, {"week": 5, "day_header": "יום חמישי 30.7", "day_name": "יום חמישי", "date": "30.7", "file": "_ תכנון שבועי 5 בית ספר של החופש הגדול כיתות ד-ו.docx", "sessions": [{"group": "ד (קב' 1)", "time": "12.00-13.00", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 2)", "time": "8.00-9.30", "subject": "אנגלית עם מיכל", "row": "ד"}, {"group": "ד (קב' 2)", "time": "10.00-11.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 3)", "time": "8.00-9.30", "subject": "שפה עם שחר", "row": "ד"}, {"group": "ד (קב' 3)", "time": "10.00-11.30", "subject": "אנגלית עם מיכל", "row": "ד"}]}];
+    const STUDENTS = {"אורין סירי": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "אנגלית": "קבוצה 1", "אמנות-העשרה": "קבוצה 2"}}, "אור עמירה": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2", "אנגלית": "קבוצה 2", "שפה": "קבוצה 2", "אמנות-העשרה": "קבוצה 1"}}, "איתן עטיה": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3"}}, "ליאור מינץ": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "אנגלית": "קבוצה 1", "שפה": "קבוצה 1"}}, "דריה קיש": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2"}}, "מיקה קוט": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "אמנות-העשרה": "קבוצה 1"}}, "לורן קובי": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "אנגלית": "קבוצה 1", "שפה": "קבוצה 1"}}, "רומי דרור": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2"}}, "אורי אפרגן": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3"}}, "עומר מג'ר": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "אנגלית": "קבוצה 1", "שפה": "קבוצה 1", "אמנות-העשרה": "קבוצה 2"}}, "ליבי נרינסקי": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2", "שפה": "קבוצה 2", "אמנות-העשרה": "קבוצה 1"}}, "עופרי דרור": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "אנגלית": "קבוצה 3", "שפה": "קבוצה 2"}}, "רועי קינן": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "שפה": "קבוצה 1"}}, "נויה הדר": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2", "אנגלית": "קבוצה 2"}}, "נדב האוסמן": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "שפה": "קבוצה 2"}}, "יובל זהבי": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "אנגלית": "קבוצה 1", "שפה": "קבוצה 1"}}, "יהונתן הראל": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "אנגלית": "קבוצה 3", "שפה": "קבוצה 2", "אמנות-העשרה": "קבוצה 1"}}, "נוב מושקט": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "אנגלית": "קבוצה 3", "שפה": "קבוצה 2"}}, "ליה שולוב": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "שפה": "קבוצה 1", "אמנות-העשרה": "קבוצה 2"}}, "יובל פרבר": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2", "אנגלית": "קבוצה 2"}}, "דן שבת": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "אנגלית": "קבוצה 2", "שפה": "קבוצה 1", "אמנות-העשרה": "קבוצה 2"}}, "עופרי בר שלום": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1"}}, "איתן סייקין": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2", "אנגלית": "קבוצה 2", "שפה": "קבוצה 2", "אמנות-העשרה": "קבוצה 1"}}, "עמית הלפרין": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "אנגלית": "קבוצה 3", "שפה": "קבוצה 2", "אמנות-העשרה": "קבוצה 1"}}, "אלמה מור": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1"}}, "נבו דגן": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2", "אנגלית": "קבוצה 2", "אמנות-העשרה": "קבוצה 2"}}, "נדב ירון": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "אנגלית": "קבוצה 3", "שפה": "קבוצה 2", "אמנות-העשרה": "קבוצה 1"}}, "מיקה תשובה": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "שפה": "קבוצה 1"}}, "ירדן שגב": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2"}}, "טל זגורי": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3", "אנגלית": "קבוצה 3", "שפה": "קבוצה 2", "אמנות-העשרה": "קבוצה 1"}}, "ליה בלייר": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "אמנות-העשרה": "קבוצה 2"}}, "ירום עוז": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 2", "אמנות-העשרה": "קבוצה 2"}}, "נועה שילמן": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 1", "אנגלית": "קבוצה 1", "אמנות-העשרה": "קבוצה 2"}}, "לילי רייני": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3"}}, "ליה רייני": {"grade": "ד", "subjects": {"מתמטיקה": "קבוצה 3"}}, "סהר מצנר": {"grade": "ד", "subjects": {"אנגלית": "קבוצה 3", "אמנות-העשרה": "קבוצה 2"}}, "אורי איפרגן": {"grade": "ד", "subjects": {"אנגלית": "קבוצה 3", "אמנות-העשרה": "קבוצה 2"}}, "נבו מדג'ר": {"grade": "ד", "subjects": {"אנגלית": "קבוצה 1"}}, "עידו עוקב": {"grade": "ד", "subjects": {"אנגלית": "קבוצה 3", "אמנות-העשרה": "קבוצה 1"}}, "עלמה שמר": {"grade": "ד", "subjects": {"אנגלית": "קבוצה 1"}}, "קרן מירב": {"grade": "ד", "subjects": {"אנגלית": "קבוצה 2", "אמנות-העשרה": "קבוצה 1"}}, "מיקה תבל": {"grade": "ד", "subjects": {"אנגלית": "קבוצה 2", "שפה": "קבוצה 1"}}, "שני המר": {"grade": "ד", "subjects": {"אנגלית": "קבוצה 3"}}, "גרינר לביא": {"grade": "ד", "subjects": {"שפה": "קבוצה 1"}}, "עמנואל ארזואן": {"grade": "ד", "subjects": {"אמנות-העשרה": "קבוצה 2"}}, "שחר כץ": {"grade": "ד", "subjects": {"אמנות-העשרה": "קבוצה 2"}}, "שרי בן חמו": {"grade": "ד", "subjects": {"אמנות-העשרה": "קבוצה 1"}}, "שחר דרור": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה", "שפה": "רשומה", "אנגלית": "קבוצה 1", "אמנות-העשרה": "רשומה"}}, "עילאי מסיקה": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה", "שפה": "רשומה", "אנגלית": "קבוצה 2"}}, "ליאם בן אהרון": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה"}}, "אדם אלפרון": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה", "שפה": "רשומה", "אנגלית": "קבוצה 1", "אמנות-העשרה": "רשומה"}}, "אלון שחורי": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה", "שפה": "רשומה", "אנגלית": "קבוצה 2"}}, "שחר רובינשטיין": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה", "שפה": "רשומה", "אנגלית": "קבוצה 1"}}, "ארי ברוקס": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה", "שפה": "רשומה", "אנגלית": "קבוצה 1"}}, "אסיף רוזמן": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה"}}, "עילאי סיגל": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה", "שפה": "רשומה", "אנגלית": "קבוצה 2", "אמנות-העשרה": "רשומה"}}, "שלו עבדת": {"grade": "ה", "subjects": {"מתמטיקה": "רשומה", "אנגלית": "קבוצה 1"}}, "שקד שגיא": {"grade": "ה", "subjects": {"שפה": "רשומה"}}, "אסיף רוזן": {"grade": "ה", "subjects": {"שפה": "רשומה", "אנגלית": "קבוצה 2"}}, "יהונתן במני": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 1"}}, "קארה אפשטיין": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 2"}}, "יובל מלכה": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 2"}}, "מיכאל ארזואן": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 2"}}, "מיאל צמח": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 2"}}, "אריאל קורן": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 1"}}, "דני יפרח": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 1"}}, "עמית חוליו": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 1"}}, "עילי מזרחי": {"grade": "ה", "subjects": {"אנגלית": "קבוצה 2"}}, "שקד שגיא שחר רובינשטיין": {"grade": "ה+ו", "subjects": {"אמנות-העשרה": "רשומה"}}, "סול מצנר": {"grade": "ה+ו", "subjects": {"אמנות-העשרה": "רשומה", "מתמטיקה": "רשומה"}}, "אופק רובינשטיין": {"grade": "ה+ו", "subjects": {"אמנות-העשרה": "רשומה", "מתמטיקה": "רשומה", "אנגלית": "רשומה", "שפה": "רשומה"}}, "עומר דורון": {"grade": "ה+ו", "subjects": {"אמנות-העשרה": "רשומה", "מתמטיקה": "רשומה", "אנגלית": "רשומה", "שפה": "רשומה"}}, "נעמי פרץ": {"grade": "ו", "subjects": {"מתמטיקה": "רשומה"}}, "רביד ישראלי": {"grade": "ו", "subjects": {"מתמטיקה": "רשומה"}}, "נאיה קמחי": {"grade": "ו", "subjects": {"מתמטיקה": "רשומה", "אנגלית": "רשומה"}}, "אריאל פרבר": {"grade": "ו", "subjects": {"מתמטיקה": "רשומה", "אנגלית": "רשומה"}}, "תמר ביטון": {"grade": "ו", "subjects": {"מתמטיקה": "רשומה", "אנגלית": "רשומה", "שפה": "רשומה"}}, "אלון קלאורה": {"grade": "ו", "subjects": {"אנגלית": "רשומה"}}, "אביב קלאורה": {"grade": "ו", "subjects": {"אנגלית": "רשומה"}}, "נבו ברין": {"grade": "ו", "subjects": {"אנגלית": "רשומה"}}, "יונתן מרום": {"grade": "ו", "subjects": {"אנגלית": "רשומה"}}, "אגם ארזי": {"grade": "ו", "subjects": {"אנגלית": "רשומה"}}};
+
+    // Global App State
+    let selectedStudent = null;
+    let selectedGroupFilter = null; // 'ד', 'ה', 'ו'
+    let showOnlyMyClasses = false;
+
+    // Elements
+    const searchInput = document.getElementById('searchInput');
+    const autocompleteList = document.getElementById('autocompleteList');
+    const infoBar = document.getElementById('infoBar');
+    const calendarGrid = document.getElementById('calendarGrid');
+    const toggleShowOnlyMy = document.getElementById('toggleShowOnlyMy');
+
+    const btnAllGrades = document.getElementById('btnAllGrades');
+    const btnD = document.getElementById('btnD');
+    const btnH = document.getElementById('btnH');
+    const btnV = document.getElementById('btnV');
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+        setupEventListeners();
+        renderCalendar();
+    });
+
+    function setupEventListeners() {
+        // Autocomplete search
+        searchInput.addEventListener('input', handleSearchInput);
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput) {
+                autocompleteList.style.display = 'none';
+            }
+        });
+
+        // Show only my classes toggle
+        toggleShowOnlyMy.addEventListener('change', (e) => {
+            showOnlyMyClasses = e.target.checked;
+            renderCalendar();
+        });
+
+        // Grade Quick Filters
+        btnAllGrades.addEventListener('click', () => setGradeFilter(null, btnAllGrades));
+        btnD.addEventListener('click', () => setGradeFilter('ד', btnD));
+        btnH.addEventListener('click', () => setGradeFilter('ה', btnH));
+        btnV.addEventListener('click', () => setGradeFilter('ו', btnV));
+    }
+
+    function setGradeFilter(grade, activeBtn) {
+        selectedGroupFilter = grade;
+        document.querySelectorAll('.filter-buttons .btn').forEach(b => {
+            if (b !== document.querySelector('.btn-print')) b.classList.remove('active');
+        });
+        activeBtn.classList.add('active');
+        
+        // Reset student selection if filtering grades
+        if (grade !== null) {
+            selectedStudent = null;
+            searchInput.value = '';
+            infoBar.style.display = 'none';
+        }
+        renderCalendar();
+    }
+
+    function handleSearchInput() {
+        const val = searchInput.value.trim().toLowerCase();
+        autocompleteList.innerHTML = '';
+        
+        if (!val) {
+            autocompleteList.style.display = 'none';
+            selectedStudent = null;
+            infoBar.style.display = 'none';
+            renderCalendar();
+            return;
+        }
+
+        // Match student names
+        const matches = [];
+        for (const sName in STUDENTS) {
+            if (sName.toLowerCase().includes(val)) {
+                matches.push(sName);
+            }
+        }
+
+        if (matches.length > 0) {
+            matches.slice(0, 8).forEach(match => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.textContent = match;
+                div.addEventListener('click', () => selectStudent(match));
+                autocompleteList.appendChild(div);
+            });
+            autocompleteList.style.display = 'block';
+        } else {
+            autocompleteList.style.display = 'none';
+        }
+    }
+
+    function selectStudent(studentName) {
+        selectedStudent = studentName;
+        searchInput.value = studentName;
+        autocompleteList.style.display = 'none';
+
+        const info = STUDENTS[studentName];
+        let subsText = [];
+        for (const sub in info.subjects) {
+            subsText.push(`${sub} (${info.subjects[sub]})`);
+        }
+
+        infoBar.innerHTML = `<strong>תלמיד/ה:</strong> ${studentName} (כיתה ${info.grade}') &nbsp;|&nbsp; <strong>קבוצות:</strong> ${subsText.join(' • ')}`;
+        infoBar.style.display = 'block';
+
+        // Clear grade filter button highlights
+        document.querySelectorAll('.filter-buttons .btn').forEach(b => b.classList.remove('active'));
+        btnAllGrades.classList.add('active');
+        selectedGroupFilter = null;
+
+        renderCalendar();
+    }
+
+    // Subject type matching
+    function getSubjectType(subjText) {
+        const s = subjText.toLowerCase();
+        if (s.includes('שפה')) return 'שפה';
+        if (s.includes('מתמטיקה')) return 'מתמטיקה';
+        if (s.includes('אנגלית')) return 'אנגלית';
+        if (s.includes('אומנות') || s.includes('אמנות') || s.includes('העשרה')) return 'אמנות-העשרה';
+        return 'unknown';
+    }
+
+    // Check attendance logic
+    function checkStudentAttendance(studentName, session) {
+        if (!STUDENTS[studentName]) return false;
+        
+        const sInfo = STUDENTS[studentName];
+        const sGrade = sInfo.grade;
+        const sSubs = sInfo.subjects;
+        
+        const group = session.group;
+        const rowType = session.row;
+        const subjText = session.subject;
+        const subjType = getSubjectType(subjText);
+        
+        // Extract group number
+        let groupNum = null;
+        if (group) {
+            const m = group.match(/\d+/);
+            if (m) groupNum = parseInt(m[0]);
+        }
+        
+        // Grade ד
+        if (rowType === 'ד' || (group && group.includes('ד'))) {
+            if (sGrade === 'ד') {
+                if (subjType in sSubs) {
+                    const sGroup = sSubs[subjType];
+                    const mNum = sGroup.match(/\d+/);
+                    if (mNum) {
+                        const sGroupNum = parseInt(mNum[0]);
+                        if (sGroupNum === groupNum) return true;
+                    }
+                }
+            }
+            return false;
+        }
+        
+        // Grade ה+ו or ו
+        if (rowType === 'ה+ו' || (group && (group.includes('ו') || group.includes('ה+ו')))) {
+            let isGradeFOrCombined = false;
+            if (['ו', 'ה+ו'].includes(group)) {
+                isGradeFOrCombined = true;
+            } else if (group && group.includes('ו') && !group.includes('ה')) {
+                isGradeFOrCombined = true;
+            } else if (group && group.includes('ה+ו')) {
+                isGradeFOrCombined = true;
+            }
+            
+            if (isGradeFOrCombined) {
+                if (sGrade === 'ו' || sGrade === 'ה+ו') {
+                    if (subjType in sSubs) return true;
+                }
+            }
+            return false;
+        }
+        
+        // Grade ה
+        if (group && group.includes('ה') && !group.includes('ו')) {
+            if (sGrade === 'ה') {
+                if (subjType in sSubs) {
+                    const sGroup = sSubs[subjType];
+                    if (groupNum) {
+                        const mNum = sGroup.match(/\d+/);
+                        if (mNum) {
+                            const sGroupNum = parseInt(mNum[0]);
+                            if (sGroupNum === groupNum) return true;
+                        }
+                    } else {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        
+        return false;
+    }
+
+    function normalizeTime(timeStr) {
+        if (!timeStr) return "";
+        const m = timeStr.match(/(\d+)[\.:](\d+)\s*-\s*(\d+)[\.:](\d+)/);
+        if (m) {
+            const h1 = parseInt(m[1]).toString().padStart(2, '0');
+            const m1 = parseInt(m[2]).toString().padStart(2, '0');
+            const h2 = parseInt(m[3]).toString().padStart(2, '0');
+            const m2 = parseInt(m[4]).toString().padStart(2, '0');
+            return `${h1}:${m1}-${h2}:${m2}`;
+        }
+        return timeStr;
+    }
+
+    // Calendar Grid Renderer
+    function renderCalendar() {
+        calendarGrid.innerHTML = '';
+
+        // Render Headers
+        const weekdays = ["שבוע", "יום ראשון (א)", "יום שני (ב)", "יום שלישי (ג)", "יום רביעי (ד)", "יום חמישי (ה)"];
+        weekdays.forEach(day => {
+            const div = document.createElement('div');
+            div.className = 'grid-header';
+            div.textContent = day;
+            calendarGrid.appendChild(div);
+        });
+
+        // Compile week data
+        const weeksData = {};
+        for (let w = 1; w <= 5; w++) {
+            weeksData[w] = [null, null, null, null, null];
+        }
+
+        const dayToCol = {
+            "יום ראשון": 0,
+            "יום שני": 1,
+            "יום שלישי": 2,
+            "יום רביעי": 3,
+            "יום חמישי": 4
+        };
+
+        SESSIONS.forEach(day => {
+            const w = day.week;
+            const col = dayToCol[day.day_name];
+            if (col !== undefined) {
+                weeksData[w][col] = day;
+            }
+        });
+
+        // Populate cells
+        for (let w = 1; w <= 5; w++) {
+            // 1. Week Label Cell
+            const weekLabelCell = document.createElement('div');
+            weekLabelCell.className = 'week-label';
+            const dates = weeksData[w].filter(d => d !== null).map(d => d.date);
+            if (dates.length > 0) {
+                weekLabelCell.innerHTML = `שבוע ${w}<br><span style="font-size:0.78rem; font-weight:normal;">(${dates[0]} - ${dates[dates.length - 1]})</span>`;
+            } else {
+                weekLabelCell.textContent = `שבוע ${w}`;
+            }
+            calendarGrid.appendChild(weekLabelCell);
+
+            // 2. Day Cells
+            for (let col = 0; col < 5; col++) {
+                const dayInfo = weeksData[w][col];
+                const dayCell = document.createElement('div');
+
+                if (!dayInfo) {
+                    dayCell.className = 'day-cell empty';
+                    calendarGrid.appendChild(dayCell);
+                    continue;
+                }
+
+                dayCell.className = 'day-cell';
+                const dayNum = dayInfo.date.split('.')[0];
+                
+                const numHeader = document.createElement('div');
+                numHeader.className = 'day-num';
+                numHeader.textContent = dayNum;
+                dayCell.appendChild(numHeader);
+
+                // Sort and filter sessions
+                let sessions = dayInfo.sessions || [];
+                
+                // Sort chronologically
+                sessions = sessions.map(s => {
+                    const t = normalizeTime(s.time);
+                    const m = t.match(/(\d+):(\d+)/);
+                    const startTime = m ? [parseInt(m[1]), parseInt(m[2])] : [24, 0];
+                    return { ...s, normalizedTime: t, startTime };
+                }).sort((a, b) => a.startTime[0] - b.startTime[0] || a.startTime[1] - b.startTime[1]);
+
+                let visibleSessionsCount = 0;
+
+                sessions.forEach(s => {
+                    const isAttending = selectedStudent ? checkStudentAttendance(selectedStudent, s) : false;
+                    
+                    // Grade Level Filter
+                    let passesGradeFilter = true;
+                    if (selectedGroupFilter) {
+                        const grp = s.group || s.row;
+                        if (!grp.includes(selectedGroupFilter) && !(selectedGroupFilter === 'ו' && grp.includes('ה+ו')) && !(selectedGroupFilter === 'ה' && grp.includes('ה+ו'))) {
+                            passesGradeFilter = false;
+                        }
+                    }
+
+                    // Hide non-matching if toggle is checked
+                    if (showOnlyMyClasses && selectedStudent && !isAttending) {
+                        return; // skip
+                    }
+
+                    if (!passesGradeFilter) {
+                        return; // skip
+                    }
+
+                    visibleSessionsCount++;
+
+                    const sDiv = document.createElement('div');
+                    sDiv.className = 'session-item';
+                    
+                    if (selectedStudent) {
+                        if (isAttending) {
+                            sDiv.classList.add('highlighted');
+                        } else {
+                            sDiv.classList.add('faded');
+                        }
+                    }
+
+                    const grpName = s.group || s.row;
+                    sDiv.innerHTML = `<span class="time">${s.normalizedTime}</span>
+                                     <span class="details">${grpName} - ${s.subject}</span>`;
+                    
+                    if (selectedStudent && isAttending) {
+                        const badge = document.createElement('span');
+                        badge.className = 'student-badge';
+                        badge.textContent = selectedStudent.split(' ')[0]; // Show first name
+                        sDiv.appendChild(badge);
+                    }
+
+                    dayCell.appendChild(sDiv);
+                });
+
+                if (visibleSessionsCount === 0 && showOnlyMyClasses) {
+                    dayCell.classList.add('empty');
+                }
+
+                calendarGrid.appendChild(dayCell);
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
