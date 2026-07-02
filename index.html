@@ -197,7 +197,16 @@
             display: none;
         }
 
-        /* Calendar Grid */
+        /* Views (Desktop vs Mobile) */
+        .desktop-view {
+            display: block;
+        }
+
+        .mobile-view {
+            display: none;
+        }
+
+        /* Calendar Desktop Grid */
         .calendar-wrapper {
             overflow-x: auto;
         }
@@ -315,6 +324,83 @@
             font-weight: bold;
         }
 
+        /* Mobile View Specific Layouts */
+        .mobile-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 5px 0 15px 0;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .mobile-tab-btn {
+            flex: 1;
+            min-width: 90px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-dark);
+            cursor: pointer;
+            text-align: center;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(31, 73, 125, 0.2);
+        }
+
+        .mobile-calendar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .mobile-day-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .mobile-day-card.empty {
+            opacity: 0.5;
+            background: #fdfefe;
+        }
+
+        .mobile-day-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 2px solid #f2f4f4;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-day-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+
+        .mobile-sessions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         /* Footer */
         footer {
             text-align: center;
@@ -324,17 +410,31 @@
             padding-bottom: 20px;
         }
 
-        /* Responsive Mobile Settings */
+        /* Responsive Mobile Layout Switch */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
             header h1 {
                 font-size: 1.8rem;
             }
             .controls {
                 flex-direction: column;
                 align-items: stretch;
+                padding: 15px;
+                gap: 15px;
             }
             .filter-buttons {
                 justify-content: center;
+            }
+            .desktop-view {
+                display: none !important;
+            }
+            .mobile-view {
+                display: block !important;
+            }
+            .mobile-view.mobile-tabs {
+                display: flex !important;
             }
         }
 
@@ -344,8 +444,11 @@
                 background: white;
                 padding: 0;
             }
-            .controls, footer, .autocomplete-list {
+            .controls, footer, .autocomplete-list, .mobile-view {
                 display: none !important;
+            }
+            .desktop-view {
+                display: block !important;
             }
             header {
                 margin-bottom: 15px;
@@ -405,9 +508,20 @@
 
     <div id="infoBar" class="info-bar"></div>
 
-    <div class="calendar-wrapper">
+    <!-- Desktop Grid View -->
+    <div class="calendar-wrapper desktop-view">
         <div class="calendar-grid" id="calendarGrid">
             <!-- Headers will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Mobile Tabbed Card View -->
+    <div class="mobile-view">
+        <div class="mobile-tabs" id="mobileWeekTabs">
+            <!-- Week tabs (Week 1 to Week 5) -->
+        </div>
+        <div class="mobile-calendar" id="mobileCalendar">
+            <!-- Card list for the active week -->
         </div>
     </div>
 
@@ -425,12 +539,15 @@
     let selectedStudent = null;
     let selectedGroupFilter = null; // 'ד', 'ה', 'ו'
     let showOnlyMyClasses = false;
+    let activeMobileWeek = 1; // Default active week on mobile
 
     // Elements
     const searchInput = document.getElementById('searchInput');
     const autocompleteList = document.getElementById('autocompleteList');
     const infoBar = document.getElementById('infoBar');
     const calendarGrid = document.getElementById('calendarGrid');
+    const mobileCalendar = document.getElementById('mobileCalendar');
+    const mobileWeekTabs = document.getElementById('mobileWeekTabs');
     const toggleShowOnlyMy = document.getElementById('toggleShowOnlyMy');
 
     const btnAllGrades = document.getElementById('btnAllGrades');
@@ -637,8 +754,15 @@
         return timeStr;
     }
 
-    // Calendar Grid Renderer
+    // Calendar Controllers
     function renderCalendar() {
+        // Render both views
+        renderDesktopCalendar();
+        renderMobileCalendar();
+    }
+
+    // 1. Desktop Renderer
+    function renderDesktopCalendar() {
         calendarGrid.innerHTML = '';
 
         // Render Headers
@@ -674,7 +798,7 @@
 
         // Populate cells
         for (let w = 1; w <= 5; w++) {
-            // 1. Week Label Cell
+            // Week Label Cell
             const weekLabelCell = document.createElement('div');
             weekLabelCell.className = 'week-label';
             const dates = weeksData[w].filter(d => d !== null).map(d => d.date);
@@ -685,7 +809,7 @@
             }
             calendarGrid.appendChild(weekLabelCell);
 
-            // 2. Day Cells
+            // Day Cells
             for (let col = 0; col < 5; col++) {
                 const dayInfo = weeksData[w][col];
                 const dayCell = document.createElement('div');
@@ -772,6 +896,134 @@
                 calendarGrid.appendChild(dayCell);
             }
         }
+    }
+
+    // 2. Mobile Renderer
+    function renderMobileCalendar() {
+        // Render tabs
+        mobileWeekTabs.innerHTML = '';
+        for (let w = 1; w <= 5; w++) {
+            const tabBtn = document.createElement('button');
+            tabBtn.className = 'mobile-tab-btn';
+            if (w === activeMobileWeek) tabBtn.classList.add('active');
+            tabBtn.textContent = `שבוע ${w}`;
+            tabBtn.addEventListener('click', () => {
+                activeMobileWeek = w;
+                renderMobileCalendar();
+            });
+            mobileWeekTabs.appendChild(tabBtn);
+        }
+
+        // Render card content for the active week
+        mobileCalendar.innerHTML = '';
+
+        // Filter sessions by week
+        const weekDays = SESSIONS.filter(day => day.week === activeMobileWeek);
+        const dayToOrder = {
+            "יום ראשון": 0,
+            "יום שני": 1,
+            "יום שלישי": 2,
+            "יום רביעי": 3,
+            "יום חמישי": 4
+        };
+        weekDays.sort((a, b) => dayToOrder[a.day_name] - dayToOrder[b.day_name]);
+
+        if (weekDays.length === 0) {
+            mobileCalendar.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">אין שיעורים השבוע</div>';
+            return;
+        }
+
+        weekDays.forEach(day => {
+            const card = document.createElement('div');
+            card.className = 'mobile-day-card';
+
+            const header = document.createElement('div');
+            header.className = 'mobile-day-header';
+            header.innerHTML = `<span>${day.day_name}</span> <span class="mobile-day-date">${day.date}</span>`;
+            card.appendChild(header);
+
+            const sessionsList = document.createElement('div');
+            sessionsList.className = 'mobile-sessions-list';
+
+            let sessions = day.sessions || [];
+            
+            // Sort chronologically
+            sessions = sessions.map(s => {
+                const t = normalizeTime(s.time);
+                const m = t.match(/(\d+):(\d+)/);
+                const startTime = m ? [parseInt(m[1]), parseInt(m[2])] : [24, 0];
+                return { ...s, normalizedTime: t, startTime };
+            }).sort((a, b) => a.startTime[0] - b.startTime[0] || a.startTime[1] - b.startTime[1]);
+
+            let visibleSessionsCount = 0;
+
+            sessions.forEach(s => {
+                const isAttending = selectedStudent ? checkStudentAttendance(selectedStudent, s) : false;
+
+                // Grade Filter
+                let passesGradeFilter = true;
+                if (selectedGroupFilter) {
+                    const grp = s.group || s.row;
+                    if (!grp.includes(selectedGroupFilter) && !(selectedGroupFilter === 'ו' && grp.includes('ה+ו')) && !(selectedGroupFilter === 'ה' && grp.includes('ה+ו'))) {
+                        passesGradeFilter = false;
+                    }
+                }
+
+                if (showOnlyMyClasses && selectedStudent && !isAttending) {
+                    return; // skip
+                }
+
+                if (!passesGradeFilter) {
+                    return; // skip
+                }
+
+                visibleSessionsCount++;
+
+                const sDiv = document.createElement('div');
+                sDiv.className = 'session-item';
+
+                if (selectedStudent) {
+                    if (isAttending) {
+                        sDiv.classList.add('highlighted');
+                    } else {
+                        sDiv.classList.add('faded');
+                    }
+                }
+
+                const grpName = s.group || s.row;
+                sDiv.innerHTML = `<span class="time">${s.normalizedTime}</span>
+                                 <span class="details">${grpName} - ${s.subject}</span>`;
+                
+                if (selectedStudent && isAttending) {
+                    const badge = document.createElement('span');
+                    badge.className = 'student-badge';
+                    badge.textContent = selectedStudent.split(' ')[0];
+                    sDiv.appendChild(badge);
+                }
+
+                sessionsList.appendChild(sDiv);
+            });
+
+            card.appendChild(sessionsList);
+
+            if (visibleSessionsCount === 0 && showOnlyMyClasses) {
+                // Skip rendering the day card entirely on mobile if showing only my classes and day is empty
+                return;
+            }
+
+            if (visibleSessionsCount === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.color = 'var(--text-muted)';
+                emptyMsg.style.fontSize = '0.85rem';
+                emptyMsg.style.textAlign = 'center';
+                emptyMsg.style.padding = '10px 0';
+                emptyMsg.textContent = 'אין שיעורים ביום זה';
+                sessionsList.appendChild(emptyMsg);
+                card.classList.add('empty');
+            }
+
+            mobileCalendar.appendChild(card);
+        });
     }
 </script>
 
